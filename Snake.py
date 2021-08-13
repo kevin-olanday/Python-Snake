@@ -42,11 +42,38 @@ food = [10, 15]
 # display the first food
 window.addch(food[0], food[1], '○', curses.color_pair(2) | curses.A_BLINK)
 
+class Snake:
+    def __init__(self, coordinates):
+        self.coordinates = coordinates
+        self.length = len(coordinates)
+        self.head_coordinates = list(coordinates[0])
+
+    def __repr__(self):
+        return f"Snake at coordinates {self.coordinates} with length {self.length}"
+
+    def move_snake(self, direction):
+        self.head_coordinates[0] += (direction == "down" and 1) + (direction == "up" and -1)      
+        self.head_coordinates[1] += (direction == "left" and -1) + (direction == "right" and 1)
+        self.coordinates.insert(0, [self.head_coordinates[0], self.head_coordinates[1]])
+        head = self.coordinates.pop()
+        window.addch(head[0], head[1], ' ')
+        window.addch(snake2.head_coordinates[0], snake2.head_coordinates[1], '#', curses.color_pair(1))
+
+    def grow_snake(self, coordinates):
+        self.coordinates.insert(0, coordinates)
+        self.length += len(coordinates)
+
+
+snake2 = Snake([[10, 8], [10, 7], [10, 6]])
+print(snake2)
+
+
+
+
 window2.refresh()
 
 while key != 10 and key != 27: # While the user hasn't started the game
      event = window2.getch()
-     print(event)
      key = key if event == -1 else event
      window2.refresh()
 
@@ -67,6 +94,17 @@ while key != 27:  # While they Esc key is not pressed
 
 
     # Calculates the new coordinates of the head of the snake.
+    if key == KEY_DOWN:
+        direction = "down"
+    elif key == KEY_UP:
+        direction = "up"
+    elif key == KEY_LEFT:
+        direction = "left"
+    elif key == KEY_RIGHT:
+        direction = "right"
+    
+    snake2.move_snake(direction)
+
     snake.insert(0, [snake[0][0] + (key == KEY_DOWN and 1) + (key == KEY_UP and -1),
                  snake[0][1] + (key == KEY_LEFT and -1) + (key == KEY_RIGHT and 1)])
     # Exit if snake crosses the boundaries (Uncomment to enable)
