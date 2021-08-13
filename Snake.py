@@ -9,6 +9,10 @@ from random import randint
 
 # initialize the game window 
 curses.initscr()  # initialize screen
+curses.start_color()  # initialize colors
+curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
 curses.noecho()  # turn off automatic echoing of keys
 curses.curs_set(0)  # hide the cursor
 window = curses.newwin(20, 30, 0, 30)  # create game window
@@ -18,10 +22,14 @@ window.nodelay(True)  # do not wait for the user input
 # initialize the instructions window
 window2 = curses.newwin(20, 30, 0, 0)  # create game window
 window2.border(0)
-window2.addstr(0, 11, ' SNAKE ')
+window2.addstr(0, 11, ' SNAKE ',  curses.color_pair(1))
 window2.addstr(5, 3,"Press ↑, ↓, →, ← to move")
 window2.addstr(7, 3,"Press ENTER to start game")
 window2.addstr(8, 4,"Press ESC to exit game")
+window2.addstr(12,14,".'`_ o `;__,", curses.color_pair(1))
+window2.addstr(13,4,".       .'.'` '---'  '", curses.color_pair(1))
+window2.addstr(14,4,".`-...-'.'", curses.color_pair(1))
+window2.addstr(15,4," `-...-'", curses.color_pair(1))
 
 # initialize global variables
 key = ""
@@ -32,7 +40,7 @@ snake = [[5, 8], [5, 7], [5, 6]]
 food = [10, 15]
 
 # display the first food
-window.addch(food[0], food[1], 'O')
+window.addch(food[0], food[1], '○', curses.color_pair(2) | curses.A_BLINK)
 
 window2.refresh()
 
@@ -44,11 +52,12 @@ while key != 10 and key != 27: # While the user hasn't started the game
 
 key = KEY_RIGHT
   
-
+counter = 0
 while key != 27:  # While they Esc key is not pressed
+
     window.border(0)
     # display the score and title
-    window2.addstr(19, 11, 'Score: ' + str(score) + ' ')
+    window2.addstr(19, 11, 'Score: ' + str(score) + ' ', curses.color_pair(2))
     window2.refresh()
     # make the snake faster as it eats more
     window.timeout(140 - (int(len(snake)/5) + int(len(snake)/10)) % 120)
@@ -69,6 +78,7 @@ while key != 27:  # While they Esc key is not pressed
 
     # When snake eats the food
     if snake[0] == food:
+        counter = 0
         food = []
         score += 1
         while food == []:
@@ -76,10 +86,13 @@ while key != 27:  # While they Esc key is not pressed
             food = [randint(1, 18), randint(1, 28)]
             if food in snake:
                 food = []
-        window.addch(food[0], food[1], 'O')  # display the food
+        window.addch(food[0], food[1], '○', curses.color_pair(2))  # display the food
+        window2.addch(12,19,">", curses.color_pair(1))
     else:
+        counter += 1
+        if(counter > 2): window2.addch(12,19,"○", curses.color_pair(1))
         last = snake.pop()
         window.addch(last[0], last[1], ' ')
-    window.addch(snake[0][0], snake[0][1], '#')  # add food to snakes tail
+    window.addch(snake[0][0], snake[0][1], '#', curses.color_pair(1))  # add food to snakes tail
 curses.endwin()  # close the window and end the game
 print("\nScore: " + str(score))
