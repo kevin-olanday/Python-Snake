@@ -55,22 +55,25 @@ class Snake:
         self.head_coordinates[0] += (direction == "down" and 1) + (direction == "up" and -1)      
         self.head_coordinates[1] += (direction == "left" and -1) + (direction == "right" and 1)
         self.coordinates.insert(0, [self.head_coordinates[0], self.head_coordinates[1]])
-        head = self.coordinates.pop()
-        window.addch(head[0], head[1], ' ')
+        
+        if self.head_coordinates != food2.coordinates:
+            head = self.coordinates.pop()
+            window.addch(head[0], head[1], ' ')
         window.addch(snake2.head_coordinates[0], snake2.head_coordinates[1], '#', curses.color_pair(1))
 
-    def grow_snake(self, coordinates):
-        self.coordinates.insert(0, coordinates)
-        self.length += len(coordinates)
 
+class Food:
+    def __init__(self, coordinates, type = "Normal"):
+        self.coordinates = coordinates
+        self.type = type
+        window.addch(self.coordinates[0], self.coordinates[1], '○', curses.color_pair(2)) 
+
+    def __repr__(self):
+        return f"{self.type} food at {self.coordinates}"
 
 snake2 = Snake([[10, 8], [10, 7], [10, 6]])
-print(snake2)
+food2 = Food([18, 15])
 
-
-
-
-window2.refresh()
 
 while key != 10 and key != 27: # While the user hasn't started the game
      event = window2.getch()
