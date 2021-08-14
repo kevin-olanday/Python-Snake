@@ -36,12 +36,14 @@ class Snake:
         window.timeout(150 - speed)
         
     def eat_food(self, food):
-        self.length += 1
-        self.set_speed(self.length)
         if food.type == "Special":
             window2.addch(12,19,"♥", curses.color_pair(1))
+            self.speed += 10
         else:
             window2.addch(12,19,">", curses.color_pair(1))
+            self.speed += 1
+        print(self.speed)
+        self.set_speed(self.speed)
 
 class Food:
     def __init__(self, coordinates, type = "Normal"):
@@ -141,5 +143,5 @@ while key != 27:  # While they Esc key is not pressed
         snake.eat_food(food)
         score.add(3) if food.type == "Special" else score.add(1)        
         food.respawn()
-#curses.endwin()  # close the window and end the game
+curses.endwin()  # close the window and end the game
 print("\nScore: " + str(score.value))
