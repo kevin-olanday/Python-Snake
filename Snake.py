@@ -33,14 +33,22 @@ window2.addstr(15,4," `-...-'", curses.color_pair(1))
 
 # initialize global variables
 key = ""
-score = 0
 
 # initialize first food and snake coordinates
 snake = [[5, 8], [5, 7], [5, 6]]
 food = [10, 15]
 
 # display the first food
-window.addch(food[0], food[1], '○', curses.color_pair(2) | curses.A_BLINK)
+window.addch(food[0], food[1], '○', curses.color_pair(2))
+
+class Score:
+    def __init__(self, value = 0):
+        self.value = value
+    
+    def add(self, points):
+        self.value += points
+    
+score = Score()
 
 class Snake:
     def __init__(self, coordinates):
@@ -51,7 +59,7 @@ class Snake:
     def __repr__(self):
         return f"Snake at coordinates {self.coordinates} with length {self.length}"
 
-    def move_snake(self, direction):
+    def move(self, direction):
         self.head_coordinates[0] += (direction == "down" and 1) + (direction == "up" and -1)      
         self.head_coordinates[1] += (direction == "left" and -1) + (direction == "right" and 1)
         self.coordinates.insert(0, [self.head_coordinates[0], self.head_coordinates[1]])
@@ -59,20 +67,31 @@ class Snake:
         if self.head_coordinates != food2.coordinates:
             head = self.coordinates.pop()
             window.addch(head[0], head[1], ' ')
-        window.addch(snake2.head_coordinates[0], snake2.head_coordinates[1], '#', curses.color_pair(1))
-
+        window.addch(self.head_coordinates[0], self.head_coordinates[1], '#', curses.color_pair(1))
+        
+    def eat_food(self, food):
+        if food.type == "Normal":
+            window2.addch(12,19,">", curses.color_pair(1))
 
 class Food:
     def __init__(self, coordinates, type = "Normal"):
         self.coordinates = coordinates
         self.type = type
-        window.addch(self.coordinates[0], self.coordinates[1], '○', curses.color_pair(2)) 
 
     def __repr__(self):
         return f"{self.type} food at {self.coordinates}"
 
+    def display(self):
+        window.addch(self.coordinates[0], self.coordinates[1], '○', curses.color_pair(2)) 
+
+    def respawn(self):
+        while self.coordinates in snake2.coordinates:
+           self.coordinates = [randint(1, 18), randint(1, 28)]
+        self.display()
+
 snake2 = Snake([[10, 8], [10, 7], [10, 6]])
 food2 = Food([18, 15])
+food2.display()
 
 
 while key != 10 and key != 27: # While the user hasn't started the game
@@ -87,7 +106,7 @@ while key != 27:  # While they Esc key is not pressed
 
     window.border(0)
     # display the score and title
-    window2.addstr(19, 11, 'Score: ' + str(score) + ' ', curses.color_pair(2))
+    window2.addstr(19, 11, 'Score: ' + str(score.value) + ' ', curses.color_pair(2))
     window2.refresh()
     # make the snake faster as it eats more
     window.timeout(140 - (int(len(snake)/5) + int(len(snake)/10)) % 120)
@@ -106,34 +125,19 @@ while key != 27:  # While they Esc key is not pressed
     elif key == KEY_RIGHT:
         direction = "right"
     
-    snake2.move_snake(direction)
+    snake2.move(direction)
 
-    snake.insert(0, [snake[0][0] + (key == KEY_DOWN and 1) + (key == KEY_UP and -1),
-                 snake[0][1] + (key == KEY_LEFT and -1) + (key == KEY_RIGHT and 1)])
-    # Exit if snake crosses the boundaries (Uncomment to enable)
-    if snake[0][0] == 0 or snake[0][0] == 19 or snake[0][1] == 0 or snake[0][1] == 29:
+    # Exit if snake crosses the boundaries
+    if snake2.head_coordinates[0] == 0 or snake2.head_coordinates[0] == 19 or snake2.head_coordinates[1] == 0 or snake2.head_coordinates[1] == 29:
         break
     # Exit if snake runs over itself
-    if snake[0] in snake[1:]:
+    if snake2.head_coordinates in snake2.coordinates[1:]:
         break
 
-    # When snake eats the food
-    if snake[0] == food:
-        counter = 0
-        food = []
-        score += 1
-        while food == []:
-            # Generate coordinates for next food
-            food = [randint(1, 18), randint(1, 28)]
-            if food in snake:
-                food = []
-        window.addch(food[0], food[1], '○', curses.color_pair(2))  # display the food
-        window2.addch(12,19,">", curses.color_pair(1))
-    else:
-        counter += 1
-        if(counter > 2): window2.addch(12,19,"○", curses.color_pair(1))
-        last = snake.pop()
-        window.addch(last[0], last[1], ' ')
-    window.addch(snake[0][0], snake[0][1], '#', curses.color_pair(1))  # add food to snakes tail
+    if snake2.head_coordinates == food2.coordinates:
+        snake2.eat_food(food2)
+        score.add(1)
+        food2.respawn()
+
 curses.endwin()  # close the window and end the game
-print("\nScore: " + str(score))
+print("\nScore: " + str(score.value))
