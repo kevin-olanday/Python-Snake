@@ -2,8 +2,8 @@
 # Code is a fork of https://github.com/Carla-Codes/simple-snake-game-python/
 
 import curses
-from curses import KEY_UP, KEY_DOWN, KEY_RIGHT, KEY_LEFT, wrapper
-from random import randint
+from curses import KEY_UP, KEY_DOWN, KEY_RIGHT, KEY_LEFT
+from random import randint, random
 
 
 class Score:
@@ -33,14 +33,14 @@ class Snake:
         window.addch(self.head_coordinates[0], self.head_coordinates[1], '#', curses.color_pair(1))
 
     def set_speed(self, speed = 1):
-        print(speed)
         window.timeout(150 - speed)
         
     def eat_food(self, food):
-        print("nom!")
         self.length += 1
         self.set_speed(self.length)
-        if food.type == "Normal":
+        if food.type == "Special":
+            window2.addch(12,19,"♥", curses.color_pair(1))
+        else:
             window2.addch(12,19,">", curses.color_pair(1))
 
 class Food:
@@ -53,9 +53,13 @@ class Food:
         return f"{self.type} food at {self.coordinates}"
 
     def display(self):
-        window.addch(self.coordinates[0], self.coordinates[1], '○', curses.color_pair(2)) 
+        if(self.type == "Normal"):
+            window.addch(self.coordinates[0], self.coordinates[1], '○', curses.color_pair(2)) 
+        elif(self.type == "Special"):
+            window.addch(self.coordinates[0], self.coordinates[1], '♦', curses.color_pair(2)) 
 
     def respawn(self):
+        self.type = "Special" if random() < 0.1 else "Normal"
         while self.coordinates in snake.coordinates:
            self.coordinates = [randint(1, 18), randint(1, 28)]
         self.display()
@@ -92,6 +96,7 @@ score = Score()
 # initialize first food and snake coordinates
 snake = Snake([[5, 8], [5, 7], [5, 6]])
 food = Food([18, 15])
+
 
 
 while key != 10 and key != 27: # While the user hasn't started the game
@@ -134,7 +139,7 @@ while key != 27:  # While they Esc key is not pressed
     # If snake hits food
     if snake.head_coordinates == food.coordinates:
         snake.eat_food(food)
-        score.add(1)
+        score.add(3) if food.type == "Special" else score.add(1)        
         food.respawn()
 #curses.endwin()  # close the window and end the game
 print("\nScore: " + str(score.value))
